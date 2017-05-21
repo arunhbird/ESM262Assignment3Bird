@@ -1,0 +1,109 @@
+---
+title: "Assignment 3 - ggplot"
+author: "Arun Bird"
+date: "May 19, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(lubridate)
+resthindeep <- read_delim("resthin.deep.txt", delim = " ")
+resthinshallow <- read_delim("resthin.shallow.txt", delim = " ")
+sierraclim <- read_delim("sierraclim.txt", delim = " ")
+```
+
+```{r}
+#Plot A will be boxplot image of precipitation as a function of month
+plotA = ggplot(sierraclim, aes(y=(rain), x=(as.factor(month))))
+plotA = plotA + geom_boxplot(col = "cyan", fill = "blue") 
+#labels
+plotA = plotA + labs(y="Precipitation (Inches)", x="Month") 
+plotA = plotA + ggtitle("Monthly Precipitation in the Sierra")
+plotA = plotA + theme(axis.text = element_text(face="italic", color = "blue", size = 12))
+plotA = plotA + coord_flip()
+#change background to white instead of gray
+plotA = plotA + theme_bw() 
+#change precipitation to log scaling
+plotA = plotA + scale_y_log10() 
+plotA
+```
+
+
+```{r}
+#Plot B will compare plant biomass as a function of month between shallow and deep res
+#shallow data plot
+plot2 = ggplot(resthinshallow, aes(y=(plantc), x = as.factor(month)))
+plot2 = plot2 + ylim(0, 6) #set limits 
+plot2 = plot2 + geom_boxplot(col="coral4")
+#labels
+plot2 = plot2 + labs(y = "Plant Biomass(Shallow)", x = "Month")
+plot2 = plot2 + coord_flip()
+plot2 = plot2 + theme_bw()
+#deep data plot
+plot3 = ggplot(resthindeep, aes(y=(plantc), x=as.factor(month)))
+plot3 = plot3 + ylim(0, 6) #set same limits in order to compare values easier
+plot3 = plot3 + geom_boxplot(col = "greenyellow")
+#label
+plot3 = plot3 + labs(y = "Plant Biomass(Deep)", x = " ")
+plot3 = plot3 + coord_flip()
+plot3 = plot3 + theme_bw()
+#fuse graphs side by side
+plotB = grid.arrange(plot2, plot3, ncol = 2) #arrange the two plots side by side to compare
+#plotB = plotB + ggtitle("Plant Biomass in Deep versus Shallow")
+#tried titling the whole plot but ggtitle does not seem to work
+plotB
+```
+
+```{r}
+
+#Plot C will compare rate of transpiration as a function of plant biomass in resthindeep
+
+lm = lm(resthindeep$plantc ~ resthindeep$trans)
+#Used a linear regression line 
+#y = 4.06896 + 0.08419x, R^2 = 0.05892
+
+plotC = ggplot(resthindeep, aes(y = plantc, x=trans))
+plotC = plotC + ylim(2, 6) + xlim(0,8) #set limit for y axis
+#labels
+plotC = plotC + labs(y = "Plant Biomass", x = "Transpiration Rate")
+plotC = plotC + ggtitle("Transpiration Rate as a Function of Plant Biomass")
+plotC = plotC + geom_point(col = "palegreen", size = 0.01)
+#regression line
+plotC = plotC + geom_abline(intercept = 4.06896, slope = 0.08419, color = "cornflowerblue")
+plotC = plotC + theme_classic()
+plotC
+  
+```
+
+```{r}
+#Plot D shows plant biomass over time with regard to different thinning treatments
+
+plotD = ggplot(resthinshallow, aes(x = as.factor(wy), y = plantc, col=as.factor(thin)))
+plotD = plotD + geom_boxplot()
+#color by thinning treatment
+plotD = plotD + scale_colour_brewer(type="seq", palette = "RdYlGn", name = "Thinning Treatments")
+#labels
+plotD = plotD + labs(y = "Plant Biomass", x = "Years After Thinning")
+plotD = plotD + ggtitle("Plant Biomass Over Time Between Thinning Treatments")
+plotD = plotD + ylim(.5, 2.5)  #set limit for y axis
+plotD = plotD + coord_flip()
+plotD = plotD + theme_classic()
+plotD
+
+
+
+
+
+```
+```{r}
+
+#all four plots arranged in one image
+plots = grid.arrange(plotA, plotB, plotC, plotD, ncol = 2, nrow = 2) 
+plots
+
+```
